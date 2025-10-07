@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="theme-color" content="#1976d2"/>
+  <meta name="description" content="Field Material Management App - Track materials offline"/>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAA2klEQVR4nO2WQQ6DIBRF+7W6dOcJPIEnMJ7AE3gC4wm8gScwnsB4Ag/gCdyZuDQxjYKF0oKJ/2YmhPfnQwghhBBCyP+hBOYA2AFUAB4ArgDOJtcKwBHADsAcQPmtgRrAEcANwAvAE8AdwAnA2uRqAJwB3AA8AdwBHADUvzVQArgAeAN4mVwPABcAC5NrAeAK4A3gYnI9AVwBlN/0fwfgDuBhcj0A3AFsTK4NgIcpcDe5HgDuALZ/bWD7aQN/hSn2B5hiPzDF/gBT7A8wxX4s0z8PyPQLUfRLBCGEEELID+YDYGVamps AAAA0lEQVR4nGNgGAWjYBSMgqEDGBgY/jMwMPxnYGD4TyAeVBoFo2AUjIJRMBgBAwMDQwMAEccC8VIctFAAAAAASUVORK5CYII="/>
+  <title>Field Material App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      /* Primary Colors */
+      --blue: #1565C0; /* Darker, more professional blue */
+      --green: #388E3C; /* Darker success green */
+      --danger: #D32F2F; /* Standard error red */
+      --text: #1F2937;
+      --muted: #6B7280;
+      /* Backgrounds & Borders */
+      --card: #ffffff;
+      --bg: #F9FAFB;
+      --border: #E5E7EB;
+      /* Spacing & Radius */
+      --radius: 8px;
+    }
+    
+    /* Global Styles & Typography */
+    body {
+      font-family: 'Inter', Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      margin: 0;
+      padding: 12px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    
+    .wrap {
+      max-width: 1024px;
+      margin: 12px auto;
+      padding: 20px;
+      border-radius: 12px;
+      background: var(--card);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 10px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border);
+    }
+    
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 20px;
+      text-align: center;
+      color: var(--blue);
+    }
+
+    /* Form Layouts */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    
+    .full { grid-column: 1 / -1; }
+    
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+    
+    /* Inputs, Selects, Textareas */
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-sizing: border-box;
+      font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+      outline: none;
+    }
+    
+    select[multiple] { height: 120px; }
+    
+    .scheme-box {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 8px 0;
+    }
+    
+    .scheme-box label {
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      margin-bottom: 0;
+      font-size: 14px;
+    }
+
+    .scheme-box input[type="checkbox"] {
+      margin-right: 6px;
+      transform: scale(1.1);
+    }
+
+    /* Buttons and Controls */
+    .controls, .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    button {
+      padding: 10px 18px;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      background: var(--blue);
+      color: var(--card);
+      font-weight: 600;
+      font-size: 14px;
+      transition: background-color 0.2s, opacity 0.2s;
+    }
+    
+    button:hover { opacity: 0.9; }
+    
+    button.ghost {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    
+    button.ghost:hover {
+      background: var(--bg);
+      opacity: 1;
+    }
+    
+    button.success { background: var(--green); }
+    button.danger { background: var(--danger); }
+    
+    .actions { margin-top: 20px; }
+
+    /* Material Selection Area */
+    .materials {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    /* Generated Forms */
+    .formsContainer {
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .material-form {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr) auto; /* Material name + 5 fields + delete */
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid #E0F2F1; /* Light cyan/teal border */
+      background: #F8FDFF; /* Very light blue background */
+    }
+
+    .material-form strong {
+      grid-column: 1 / -1;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--blue);
+    }
+
+    .material-form .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .material-form .field-group label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .material-form input[type="number"], .material-form .comment {
+      width: 100%;
+      padding: 6px 8px;
+      font-size: 13px;
+      min-width: 0; /* Important for flex/grid layouts */
+    }
+    
+    .material-form .comment { grid-column: span 2; } /* Comment spans 2 columns */
+    .material-form .remaining { background: #F3F4F6; color: var(--muted); }
+
+    /* Output Table */
+    .output {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 1px solid var(--border);
+      max-height: 400px;
+      overflow: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+    
+    th, td {
+      border: 1px solid #F3F4F6;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background: #F3F4F6;
+      font-weight: 600;
+      color: var(--text);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    
+    /* Install Prompt */
+    .install-prompt {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--blue);
+      color: var(--card);
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      display: none;
+      align-items: center;
+      gap: 12px;
+      z-index: 1000;
+      max-width: 90%;
+      text-align: center;
+    }
+    
+    .install-prompt span { font-weight: 600; }
+    
+    .install-prompt button {
+      background: var(--card);
+      color: var(--blue);
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    
+    .install-prompt .close {
+      background: transparent;
+      color: var(--card);
+      padding: 4px 8px;
+      font-size: 20px;
+    }
+
+    /* Media Queries for Mobile Responsiveness */
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      .material-form { grid-template-columns: repeat(3, 1fr); }
+      .material-form strong { grid-column: 1 / -1; }
+      .material-form .comment { grid-column: span 3; }
+    }
+    
+    @media (max-width: 600px) {
+      body { padding: 8px; }
+      .wrap { padding: 15px; margin: 8px auto; }
+      h1 { font-size: 20px; }
+      
+      .grid { grid-template-columns: 1fr; }
+      .material-form { grid-template-columns: repeat(2, 1fr); }
+      .material-form strong { grid-column: 1 / -1; }
+      .material-form .comment { grid-column: 1 / -1; }
+
+      .materials > div { flex-direction: column; }
+      .materials > div > div { min-width: 100%; margin-top: 10px; }
+
+      .actions button { width: 100%; }
+      
+      .install-prompt {
+        left: 10px;
+        right: 10px;
+        transform: none;
+        flex-direction: column;
+        padding: 15px;
+      }
+      .install-prompt button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div id="installPrompt" class="install-prompt">
+    <span>Install this app for offline use</span>
+    <button onclick="installApp()">Install</button>
+    <button class="close" onclick="closeInstallPrompt()">✕</button>
+  </div>
+
+  <div class="wrap">
+    <h1>Field Material Form — Complete (Offline)</h1>
+
+    <div class="grid">
+      <div>
+        <label for="checker">Checker (Name)</label>
+        <input id="checker" type="text" placeholder="e.g. Shobi Alam">
+      </div>
+
+      <div>
+        <label for="tm">TM (Select)</label>
+        <select id="tm" onchange="autoSelectBlock(); updateBlocks(); saveLast('tm')">
+          <option value="">-- Select TM --</option>
+          <option value="Ayaz">Ayaz</option>
+          <option value="Eliyes">Eliyes</option>
+          <option value="Sona Mia">Sona Mia</option>
+          <option value="Arfat">Arfat</option>
+          <option value="Ayub Khan">Ayub Khan</option>
+          <option value="Omer Farooq">Omer Farooq</option>
+          <option value="Nur Alom">Nur Alom</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="block">Block</label>
+        <select id="block" onchange="updateSubs()"><option value="">-- Select Block --</option></select>
+      </div>
+
+      <div>
+        <label for="sub">Sub</label>
+        <select id="sub"><option value="">-- Select Sub --</option></select>
+      </div>
+
+      <div>
+        <label for="mrf">MRF Number</label>
+        <input id="mrf" type="number" placeholder="MRF number (optional)">
+      </div>
+
+      <div>
+        <label for="drr">DRR-CODE</label>
+        <input id="drr" type="text" placeholder="DRR code (optional)">
+      </div>
+
+      <div class="full">
+        <label>Type of Scheme (choose multiple)</label>
+        <div class="scheme-box" id="schemeBox">
+          <label><input type="checkbox" value="Guide wall"> Guide wall</label>
+          <label><input type="checkbox" value="Bamboo crib"> Bamboo crib</label>
+          <label><input type="checkbox" value="Path way"> Path way</label>
+          <label><input type="checkbox" value="Mashonary wall"> Mashonary wall</label>
+          <label><input type="checkbox" value="Drainage"> Drainage</label>
+        </div>
+        <input id="otherScheme" type="text" placeholder="Other scheme (if not listed)" style="margin-top:8px">
+      </div>
+    </div>
+
+    <div class="materials">
+      <label>Materials — select multiple or add custom</label>
+      <div style="display:flex;gap:15px;align-items:flex-start">
+        <select id="materialsSelect" multiple style="flex:1">
+          <option>Cement</option>
+          <option>Sand</option>
+          <option>Bricks</option>
+          <option>Rope 3mm</option>
+          <option>Rope 6mm</option>
+          <option>Geo Bag</option>
+          <option>Bamboo</option>
+          <option>Rebar 8mm</option>
+          <option>Tarpaulin</option>
+          <option>Borak</option>
+          <option>Plywood</option>
+        </select>
+
+        <div style="min-width:240px">
+          <input id="customMaterial" type="text" placeholder="Custom material name">
+          <div class="controls" style="margin-top:8px">
+            <button class="ghost" onclick="addCustomMaterial()">Add custom</button>
+            <button onclick="generateMaterialForms()" class="success">Generate forms</button>
+          </div>
+          <div class="hint">Tip: Ctrl/Cmd + click to select multiple; mobile: tap multiple items.</div>
+        </div>
+      </div>
+
+      <div id="formsContainer" class="formsContainer"></div>
+    </div>
+
+    <div class="actions">
+      <button onclick="saveEntry()">Save Entry</button>
+      <button onclick="viewSavedEntries()">View Saved Entries</button>
+      <button onclick="exportToExcel()" class="success">Export to Excel</button>
+      <button onclick="deleteAllEntries()" class="danger">Delete All</button>
+      <button onclick="clearForm()" class="ghost">Clear form</button>
+    </div>
+
+    <div id="output" class="output"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    let deferredPrompt;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installPrompt').style.display = 'flex';
+    });
+
+    function installApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('App installed');
+          }
+          deferredPrompt = null;
+          document.getElementById('installPrompt').style.display = 'none';
+        });
+      }
+    }
+
+    function closeInstallPrompt() {
+      document.getElementById('installPrompt').style.display = 'none';
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+          console.log('Service Worker registered');
+        }).catch(err => {
+          console.log('Service Worker registration failed:', err);
+        });
+      });
+    }
+
+    // All TMs use the same block options (A to G)
+    const allBlocks = ["A","B","C","D","E","F","G"];
+    
+    // TM to Block auto-mapping
+    const tmToBlock = {
+      "Ayaz": "A",
+      "Eliyes": "B",
+      "Sona Mia": "C",
+      "Arfat": "D",
+      "Ayub Khan": "E",
+      "Omer Farooq": "F",
+      "Nur Alom": "G"
+    };
+    
+    // Each block has its own sub options
+    const blockSubs = {
+      "A": ["A1","A2","A3","A4","A5","A6"],
+      "B": ["B1","B2","B3","B4","B5","B6"],
+      "C": ["C1","C2","C3","C4","C5"],
+      "D": ["D1","D2","D3","D4","D5"],
+      "E": ["E1","E2","E3","E4","E5"],
+      "F": ["F1","F2","F3","F4","F5"],
+      "G": ["G1","G2","G3","G4","G5"]
+    };
+
+    (function restoreLast(){
+      const last = JSON.parse(localStorage.getItem('lastForm') || '{}');
+      if (last.checker) document.getElementById('checker').value = last.checker;
+      if (last.tm) {
+        document.getElementById('tm').value = last.tm;
+        autoSelectBlock();
+        updateBlocks();
+      }
+      if (last.block) {
+        document.getElementById('block').value = last.block;
+        updateSubs();
+      }
+    })();
+
+    function autoSelectBlock(){
+      const tm = document.getElementById('tm').value;
+      const blockEl = document.getElementById('block');
+      
+      // Populate blocks first
+      blockEl.innerHTML = '<option value="">-- Select Block --</option>';
+      if (tm){
+        allBlocks.forEach(b=>{
+          const opt = document.createElement('option');
+          opt.value = b; opt.textContent = b;
+          blockEl.appendChild(opt);
+        });
+        
+        // Auto-select the block for this TM
+        if (tmToBlock[tm]){
+          blockEl.value = tmToBlock[tm];
+          updateSubs();
+        }
+      }
+    }
+
+    function updateBlocks(){
+      // This function is now handled by autoSelectBlock
+      // Keeping it for compatibility
+    }
+
+    function updateSubs(){
+      const block = document.getElementById('block').value;
+      const subEl = document.getElementById('sub');
+      subEl.innerHTML = '<option value="">-- Select Sub --</option>';
+      if (block && blockSubs[block]){
+        blockSubs[block].forEach(s=>{
+          const opt = document.createElement('option');
+          opt.value = s; opt.textContent = s;
+          subEl.appendChild(opt);
+        });
+      }
+    }
+
+    function saveLast(key){
+      const lastForm = JSON.parse(localStorage.getItem('lastForm') || '{}');
+      if (key === 'tm') lastForm.tm = document.getElementById('tm').value;
+      const chk = document.getElementById('checker').value.trim();
+      if (chk) lastForm.checker = chk;
+      localStorage.setItem('lastForm', JSON.stringify(lastForm));
+    }
+
+    function addCustomMaterial(){
+      const name = document.getElementById('customMaterial').value.trim();
+      if (!name){ alert('Enter custom material name'); return; }
+      const select = document.getElementById('materialsSelect');
+      const exists = Array.from(select.options).some(o => o.value.toLowerCase() === name.toLowerCase());
+      if (exists){ alert('Material already exists'); document.getElementById('customMaterial').value = ''; return; }
+      const opt = document.createElement('option');
+      opt.value = name; opt.textContent = name + ' (custom)'; opt.selected = true;
+      select.appendChild(opt);
+      document.getElementById('customMaterial').value = '';
+      showMessage('Custom material added: ' + name);
+    }
+
+    function generateMaterialForms(){
+      const select = document.getElementById('materialsSelect');
+      const selected = Array.from(select.selectedOptions).map(o => o.value);
+      const container = document.getElementById('formsContainer');
+      container.innerHTML = '';
+      if (selected.length === 0){ alert('Select at least one material'); return; }
+      selected.forEach(mat => {
+        const div = document.createElement('div');
+        div.className = 'material-form';
+        div.dataset.matName = mat;
+        div.innerHTML = `
+          <strong>${escapeHtml(mat)}</strong>
+          <div class="field-group">
+            <label>Requested</label><input type="number" step="0.01" min="0" class="requested" placeholder="Qty">
+          </div>
+          <div class="field-group">
+            <label>Received</label><input type="number" step="0.01" min="0" class="received" placeholder="Qty">
+          </div>
+          <div class="field-group">
+            <label>Used</label><input type="number" step="0.01" min="0" class="used" placeholder="Qty">
+          </div>
+          <div class="field-group">
+            <label>Remaining</label><input type="number" step="0.01" min="0" class="remaining" placeholder="Qty" readonly>
+          </div>
+          <div class="field-group comment">
+            <label>Comment</label><input type="text" placeholder="Add notes">
+          </div>
+        `;
+        div.querySelectorAll('.received, .used').forEach(i => i.addEventListener('input', ()=>calculateRemaining(div)));
+        container.appendChild(div);
+      });
+      showMessage(selected.length + ' material form(s) generated.');
+    }
+
+    function calculateRemaining(form){
+      const recV = form.querySelector('.received').value.trim();
+      const usedV = form.querySelector('.used').value.trim();
+      const remainingInput = form.querySelector('.remaining');
+      const rec = parseFloat(recV) || 0;
+      const used = parseFloat(usedV) || 0;
+      if (recV === '' && usedV === '') { remainingInput.value = ''; remainingInput.style.border = ''; return; }
+      if (used > rec){
+        remainingInput.value = 0;
+        remainingInput.style.border = '1px solid var(--danger)';
+      } else {
+        remainingInput.style.border = '';
+        const rem = rec - used;
+        remainingInput.value = Number.isInteger(rem) ? rem : rem.toFixed(2);
+      }
+    }
+
+    function escapeHtml(s){
+      return (s||'').toString().replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+    }
+
+    function saveEntry(){
+      const checker = document.getElementById('checker').value.trim();
+      const tm = document.getElementById('tm').value;
+      const block = document.getElementById('block').value;
+      const sub = document.getElementById('sub').value;
+      const mrf = document.getElementById('mrf').value.trim();
+      const drr = document.getElementById('drr').value.trim();
+      const otherScheme = document.getElementById('otherScheme').value.trim();
+      const schemes = Array.from(document.querySelectorAll('#schemeBox input[type=checkbox]:checked')).map(i=>i.value);
+      if (otherScheme) schemes.push(otherScheme);
+
+      if (!checker){ alert('Enter Checker name'); return; }
+      if (!tm){ alert('Select TM'); return; }
+      if (!block){ alert('Select Block'); return; }
+      if (!sub){ alert('Select Sub'); return; }
+
+      const forms = Array.from(document.querySelectorAll('.material-form'));
+      const mats = [];
+      for (const f of forms){
+        const name = f.dataset.matName;
+        // Search inside .field-group and get the input
+        const received = f.querySelector('.field-group:nth-child(3) input').value.trim();
+        const used = f.querySelector('.field-group:nth-child(4) input').value.trim();
+        const remaining = f.querySelector('.field-group:nth-child(5) input').value.trim();
+        const requested = f.querySelector('.field-group:nth-child(2) input').value.trim();
+        const comment = f.querySelector('.field-group:nth-child(6) input').value.trim();
+
+        if (received !== '' && isNaN(Number(received))){ alert('Received must be a number for ' + name); return; }
+        if (used !== '' && isNaN(Number(used))){ alert('Used must be a number for ' + name); return; }
+        if (remaining !== '' && isNaN(Number(remaining))){ alert('Remaining must be a number for ' + name); return; }
+        if (requested !== '' && isNaN(Number(requested))){ alert('Requested must be a number for ' + name); return; }
+
+        if (received === '' && used === '' && remaining === '' && requested === '') continue;
+
+        if (received !== '' && used !== '' && (parseFloat(used) > parseFloat(received))){
+          if (!confirm(`Used quantity (${used}) for "${name}" is greater than Received (${received}). Continue?`)) return;
+        }
+
+        mats.push({ name, received, used, remaining, requested, comment });
+      }
+
+      if (mats.length === 0){ alert('Enter quantity for at least one material'); return; }
+
+      const entry = {
+        checker, tm, block, sub, mrf, drr, schemes, materials: mats, date: new Date().toLocaleString()
+      };
+
+      const key = 'materialEntries';
+      const arr = JSON.parse(localStorage.getItem(key) || '[]');
+      arr.push(entry);
+      localStorage.setItem(key, JSON.stringify(arr));
+
+      localStorage.setItem('lastForm', JSON.stringify({ checker, tm, block }));
+
+      showMessage('Entry saved locally. Total entries: ' + arr.length);
+      clearForm();
+      viewSavedEntries();
+    }
+
+    function viewSavedEntries(){
+      const arr = JSON.parse(localStorage.getItem('materialEntries') || '[]');
+      const out = document.getElementById('output');
+      if (!arr.length){ out.innerHTML = '<div class="small">No saved entries yet.</div>'; return; }
+      let html = `<div class="small">Saved entries: ${arr.length}</div>`;
+      html += '<table><thead><tr><th>Checker</th><th>TM</th><th>Block</th><th>Sub</th><th>MRF</th><th>DRR</th><th>Scheme</th><th>Material</th><th>Requested</th><th>Received</th><th>Used</th><th>Remaining</th><th>Comment</th><th>Date</th></tr></thead><tbody>';
+      arr.forEach(ent=>{
+        ent.materials.forEach(mat=>{
+          html += `<tr>
+            <td>${escapeHtml(ent.checker)}</td>
+            <td>${escapeHtml(ent.tm)}</td>
+            <td>${escapeHtml(ent.block)}</td>
+            <td>${escapeHtml(ent.sub)}</td>
+            <td>${escapeHtml(ent.mrf||'')}</td>
+            <td>${escapeHtml(ent.drr||'')}</td>
+            <td>${escapeHtml((ent.schemes||[]).join(', '))}</td>
+            <td>${escapeHtml(mat.name)}</td>
+            <td>${escapeHtml(mat.requested||'')}</td>
+            <td>${escapeHtml(mat.received||'')}</td>
+            <td>${escapeHtml(mat.used||'')}</td>
+            <td>${escapeHtml(mat.remaining||'')}</td>
+            <td>${escapeHtml(mat.comment||'')}</td>
+            <td>${escapeHtml(ent.date)}</td>
+          </tr>`;
+        });
+      });
+      html += '</tbody></table>';
+      out.innerHTML = html;
+    }
+
+    function exportToExcel(){
+      const arr = JSON.parse(localStorage.getItem('materialEntries') || '[]');
+      if (!arr.length){ alert('No entries to export'); return; }
+      const rows = [];
+      rows.push(["Checker","TM","Block","Sub","MRF","DRR","Scheme","Material","Requested","Received","Used","Remaining","Comment","Date"]);
+      arr.forEach(ent=>{
+        ent.materials.forEach(mat=>{
+          rows.push([ent.checker, ent.tm, ent.block, ent.sub, ent.mrf||'', ent.drr||'', (ent.schemes||[]).join(', '), mat.name, mat.requested||'', mat.received||'', mat.used||'', mat.remaining||'', mat.comment||'', ent.date]);
+        });
+      });
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Entries');
+      XLSX.writeFile(wb, 'Field_Material_Entries.xlsx');
+    }
+
+    function deleteAllEntries(){
+      if (!confirm('Delete ALL saved entries? This cannot be undone.')) return;
+      localStorage.removeItem('materialEntries');
+      showMessage('All entries deleted.');
+      viewSavedEntries();
+    }
+
+    function clearForm(){
+      const last = JSON.parse(localStorage.getItem('lastForm') || '{}');
+      document.getElementById('checker').value = last.checker || '';
+      document.getElementById('tm').value = last.tm || '';
+      updateBlocks();
+      document.getElementById('block').value = last.block || '';
+      updateSubs();
+      document.getElementById('sub').value = '';
+      document.getElementById('mrf').value = '';
+      document.getElementById('drr').value = '';
+      document.getElementById('otherScheme').value = '';
+      document.querySelectorAll('#schemeBox input[type=checkbox]').forEach(c=>c.checked=false);
+      document.getElementById('materialsSelect').selectedIndex = -1;
+      document.getElementById('customMaterial').value = '';
+      document.getElementById('formsContainer').innerHTML = '';
+    }
+
+    function showMessage(msg){
+      const out = document.getElementById('output');
+      out.innerHTML = `<div class="small">${escapeHtml(msg)}</div>`;
+    }
+
+    (function init(){
+      const last = JSON.parse(localStorage.getItem('lastForm') || '{}');
+      if (last.checker) document.getElementById('checker').value = last.checker;
+      if (last.tm) { 
+        document.getElementById('tm').value = last.tm; 
+        updateBlocks(); 
+      }
+      if (last.block) { 
+        document.getElementById('block').value = last.block;
+        updateSubs();
+      }
+      viewSavedEntries();
+      document.getElementById('checker').addEventListener('input', ()=>saveLast('checker'));
+      document.getElementById('tm').addEventListener('change', ()=>saveLast('tm'));
+    })();
+  </script>
+</body>
+</html>
